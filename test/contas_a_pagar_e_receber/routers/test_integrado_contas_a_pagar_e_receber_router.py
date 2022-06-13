@@ -43,6 +43,26 @@ def test_deve_listar_contas_a_pagar_e_receber():
     ]
 
 
+def test_deve_pegar_por_id():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    response = client.post("/contas-a-pagar-e-receber", json={
+        "descricao": "Curso de Python",
+        "valor": 333,
+        "tipo": "PAGAR"
+    })
+
+    id_da_conta_a_pagar_e_receber = response.json()['id']
+
+    response_get = client.get(f"/contas-a-pagar-e-receber/{id_da_conta_a_pagar_e_receber}")
+
+    assert response_get.status_code == 200
+    assert response_get.json()['valor'] == 333
+    assert response_get.json()['tipo'] == "PAGAR"
+    assert response_get.json()['descricao'] == "Curso de Python"
+
+
 def test_deve_criar_conta_a_pagar_e_receber():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -58,6 +78,45 @@ def test_deve_criar_conta_a_pagar_e_receber():
     response = client.post("/contas-a-pagar-e-receber", json=nova_conta)
     assert response.status_code == 201
     assert response.json() == nova_conta_copy
+
+
+def test_deve_atualizar_conta_a_pagar_e_receber():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    response = client.post("/contas-a-pagar-e-receber", json={
+        "descricao": "Curso de Python",
+        "valor": 333,
+        "tipo": "PAGAR"
+    })
+
+    id_da_conta_a_pagar_e_receber = response.json()['id']
+
+    response_put = client.put(f"/contas-a-pagar-e-receber/{id_da_conta_a_pagar_e_receber}", json={
+        "descricao": "Curso de Python",
+        "valor": 111,
+        "tipo": "PAGAR"
+    })
+
+    assert response_put.status_code == 200
+    assert response_put.json()['valor'] == 111
+
+
+def test_deve_remover_conta_a_pagar_e_receber():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    response = client.post("/contas-a-pagar-e-receber", json={
+        "descricao": "Curso de Python",
+        "valor": 333,
+        "tipo": "PAGAR"
+    })
+
+    id_da_conta_a_pagar_e_receber = response.json()['id']
+
+    response_put = client.delete(f"/contas-a-pagar-e-receber/{id_da_conta_a_pagar_e_receber}")
+
+    assert response_put.status_code == 204
 
 
 def test_deve_retornar_erro_quando_exceder_a_descricao():
