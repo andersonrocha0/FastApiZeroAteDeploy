@@ -1,6 +1,6 @@
 from decimal import Decimal
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -32,6 +32,7 @@ class ContaPagarReceberRequest(BaseModel):
     descricao: str = Field(min_length=3, max_length=30)
     valor: Decimal = Field(gt=0)
     tipo: ContaPagarReceberTipoEnum  # PAGAR, RECEBER
+    fornecedor_cliente_id: int | None = None
 
 
 @router.get("", response_model=List[ContaPagarReceberResponse])
