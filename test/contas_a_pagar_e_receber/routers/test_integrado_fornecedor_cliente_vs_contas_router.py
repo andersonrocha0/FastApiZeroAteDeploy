@@ -39,19 +39,23 @@ def test_deve_listar_contas_de_um_fornecedor_cliente():
         'descricao': 'Curso Python',
         'valor': 1000.5,
         'tipo': 'PAGAR',
-        'fornecedor_cliente_id': 2
+        'fornecedor_cliente_id': 2,
+        "data_previsao": "2022-11-29"
     })
     client.post("/contas-a-pagar-e-receber", json={
         'descricao': 'Curso de Guitarra',
         'valor': 5000,
         'tipo': 'PAGAR',
-        'fornecedor_cliente_id': 1
+        'fornecedor_cliente_id': 1,
+        "data_previsao": "2022-11-29"
     })
     client.post("/contas-a-pagar-e-receber", json={
         'descricao': 'Curso de Baixo',
         'valor': 6000,
         'tipo': 'PAGAR',
-        'fornecedor_cliente_id': 1
+        'fornecedor_cliente_id': 1,
+        "data_previsao": "2022-11-29"
+
     })
 
     response_get_fornecedor_1 = client.get(f"/fornecedor-cliente/1/contas-a-pagar-e-receber")
@@ -75,3 +79,6 @@ def test_deve_retornar_uma_lista_vazia_de_contas_de_um_fornecedor_cliente():
 
     assert response_get_fornecedor.status_code == 200
     assert len(response_get_fornecedor.json()) == 0
+
+
+
