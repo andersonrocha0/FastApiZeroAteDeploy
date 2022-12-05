@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from datetime import date
 from decimal import Decimal
 from enum import Enum
@@ -47,9 +48,19 @@ class ContaPagarReceberRequest(BaseModel):
     data_previsao: date
 
 
+class PrevisaoPorMes(BaseModel):
+    mes: int
+    valor_total: Decimal
+
+
 @router.get("", response_model=List[ContaPagarReceberResponse])
 def listar_contas(db: Session = Depends(get_db)) -> List[ContaPagarReceberResponse]:
     return db.query(ContaPagarReceber).all()
+
+
+@router.get("/previsao-gastos-por-mes", response_model=List[PrevisaoPorMes])
+def previsa_de_gatos_por_mes(db: Session = Depends(get_db), ano=date.today().year):
+    return relatorio_gastos_previstos_por_mes_de_um_ano(db, ano)
 
 
 @router.get("/{id_da_conta_a_pagar_e_receber}", response_model=ContaPagarReceberResponse)
@@ -154,3 +165,27 @@ def recupera_numero_registros(db, ano, mes) -> int:
     ).count()
 
     return quantidade_de_registros
+
+
+def relatorio_gastos_previstos_por_mes_de_um_ano(db, ano) -> List[PrevisaoPorMes]:
+    contas = db.query(ContaPagarReceber).filter(
+        extract('year', ContaPagarReceber.data_previsao) == ano
+    ).filter(
+        ContaPagarReceber.tipo == ContaPagarReceberTipoEnum.PAGAR
+    ).order_by(ContaPagarReceber.data_previsao).all()
+
+    valor_por_mes = OrderedDict()
+
+    for conta in contas:
+
+        mes = conta.data_previsao.month
+
+        if valor_por_mes.get(mes) is None:
+            valor_por_mes[mes] = 0
+
+        valor_por_mes[mes] += conta.valor
+
+    return [PrevisaoPorMes(mes=k, valor_total=v) for k, v in valor_por_mes.items()]
+
+    # for k, g in groupby(contas, lambda x: x.data_previsao.month):
+    #     print({k: sum([v.valor for v in g])})

@@ -79,6 +79,3 @@ def test_deve_retornar_uma_lista_vazia_de_contas_de_um_fornecedor_cliente():
 
     assert response_get_fornecedor.status_code == 200
     assert len(response_get_fornecedor.json()) == 0
-
-
-

@@ -386,3 +386,66 @@ def test_limite_de_registros_mensais():
     assert ultima_resposta.json()['detail'] == 'Você não pode mais lançar contas para esse mês'
     assert all([r.status_code == 201 for r in respostas]) is True
 
+
+def test_relatorio_gastos_previstos_por_mes_de_um_ano():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    valor = 10
+    mes = 1
+    for i in range(1, 49):
+
+        mes_com_zero = str(mes).zfill(2)
+
+        data = f"2022-{mes_com_zero}-01"
+
+        client.post("/contas-a-pagar-e-receber", json={
+            'descricao': 'Teste',
+            'valor': valor,
+            'tipo': 'PAGAR',
+            'data_previsao': data
+        })
+
+        valor += 10
+
+        if i % 4 == 0:
+            mes += 1
+
+    resposta = client.get("/contas-a-pagar-e-receber/previsao-gastos-por-mes")
+
+    assert resposta.status_code == 200
+    resultados = resposta.json()
+    assert len(resultados) == 12
+
+    valor = 0
+    idx = 0
+    valor_total = 0
+    for i in range(1, 49):
+        valor += 10
+
+        valor_total += valor
+
+        if i % 4 == 0:
+            assert resultados[idx]['valor_total'] == valor_total
+            valor_total = 0
+            idx += 1
+
+
+def test_relatorio_gastos_previstos_por_mes_sem_registros_no_banco():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    resposta = client.get("/contas-a-pagar-e-receber/previsao-gastos-por-mes")
+
+    assert resposta.status_code == 200
+    assert len(resposta.json()) == 0
+
+
+def test_relatorio_gastos_previstos_por_mes_de_um_ano_sem_registros():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    resposta = client.get("/contas-a-pagar-e-receber/previsao-gastos-por-mes?ano=1990")
+
+    assert resposta.status_code == 200
+    assert len(resposta.json()) == 0
