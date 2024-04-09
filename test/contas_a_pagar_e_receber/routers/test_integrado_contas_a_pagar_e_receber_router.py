@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -41,9 +43,9 @@ def test_deve_listar_contas_a_pagar_e_receber():
     response = client.get('/contas-a-pagar-e-receber')
     assert response.status_code == 200
     assert response.json() == [
-        {'id': 1, 'descricao': 'Aluguel', 'valor': 1000.5, 'tipo': 'PAGAR', 'fornecedor': None, 'data_baixa': None,
+        {'id': 1, 'descricao': 'Aluguel', 'valor': "1000.50", 'tipo': 'PAGAR', 'fornecedor': None, 'data_baixa': None,
          'valor_baixa': None, 'esta_baixada': False, 'data_previsao': '2022-11-29'},
-        {'id': 2, 'descricao': 'Salário', 'valor': 5000, 'tipo': 'RECEBER', 'fornecedor': None, 'data_baixa': None,
+        {'id': 2, 'descricao': 'Salário', 'valor': "5000.00", 'tipo': 'RECEBER', 'fornecedor': None, 'data_baixa': None,
          'valor_baixa': None, 'esta_baixada': False, 'data_previsao': '2022-11-29'}
     ]
 
@@ -64,7 +66,7 @@ def test_deve_pegar_por_id():
     response_get = client.get(f"/contas-a-pagar-e-receber/{id_da_conta_a_pagar_e_receber}")
 
     assert response_get.status_code == 200
-    assert response_get.json()['valor'] == 333
+    assert response_get.json()['valor'] == "333.00"
     assert response_get.json()['tipo'] == "PAGAR"
     assert response_get.json()['descricao'] == "Curso de Python"
 
@@ -94,6 +96,7 @@ def test_deve_criar_conta_a_pagar_e_receber():
     nova_conta_copy['data_baixa'] = None
     nova_conta_copy['valor_baixa'] = None
     nova_conta_copy['esta_baixada'] = False
+    nova_conta_copy['valor'] = "333.00"
 
     response = client.post("/contas-a-pagar-e-receber", json=nova_conta)
     assert response.status_code == 201
@@ -121,7 +124,7 @@ def test_deve_atualizar_conta_a_pagar_e_receber():
     })
 
     assert response_put.status_code == 200
-    assert response_put.json()['valor'] == 111
+    assert response_put.json()['valor'] == "111.00"
 
 
 def test_deve_retornar_nao_encontrado_para_id_nao_existente_na_atualizacao():
@@ -241,6 +244,7 @@ def test_deve_criar_conta_a_pagar_e_receber_com_fornecedor_cliente_id():
     nova_conta_copy['data_baixa'] = None
     nova_conta_copy['valor_baixa'] = None
     nova_conta_copy['esta_baixada'] = False
+    nova_conta_copy['valor'] = "250.00"
 
     response = client.post("/contas-a-pagar-e-receber", json=nova_conta)
     assert response.status_code == 201
@@ -335,7 +339,7 @@ def test_deve_baixar_conta():
 
     assert response_acao.status_code == 200
     assert response_acao.json()['esta_baixada'] is True
-    assert response_acao.json()['valor'] == 333
+    assert response_acao.json()['valor'] == "333.00"
 
 
 def test_deve_baixar_conta_modificada():
@@ -362,8 +366,8 @@ def test_deve_baixar_conta_modificada():
 
     assert response_acao.status_code == 200
     assert response_acao.json()['esta_baixada'] is True
-    assert response_acao.json()['valor'] == 444
-    assert response_acao.json()['valor_baixa'] == 444
+    assert response_acao.json()['valor'] == "444.00"
+    assert response_acao.json()['valor_baixa'] == "444.00"
 
 
 def test_limite_de_registros_mensais():
@@ -396,8 +400,9 @@ def test_relatorio_gastos_previstos_por_mes_de_um_ano():
     for i in range(1, 49):
 
         mes_com_zero = str(mes).zfill(2)
+        ano = datetime.date.today().year
 
-        data = f"2022-{mes_com_zero}-01"
+        data = f"{ano}-{mes_com_zero}-01"
 
         client.post("/contas-a-pagar-e-receber", json={
             'descricao': 'Teste',
@@ -426,7 +431,7 @@ def test_relatorio_gastos_previstos_por_mes_de_um_ano():
         valor_total += valor
 
         if i % 4 == 0:
-            assert resultados[idx]['valor_total'] == valor_total
+            assert resultados[idx]['valor_total'] == f"{valor_total}.00"
             valor_total = 0
             idx += 1
 
