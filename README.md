@@ -23,3 +23,9 @@ docker run --name db_fast_api_zero_ate_deploy -p 5432:5432 -e POSTGRES_DB=db_fas
 ```
 alembic upgrade head
 ```
+
+# Como rodar os testes
+
+```
+python -m pytest 
+```
